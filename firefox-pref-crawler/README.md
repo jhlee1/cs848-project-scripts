@@ -24,8 +24,12 @@ Tags I used to differentiate toggles
 
 - Dev toggles
   - !defined(RELEASE_OR_BETA)
+  - defined(NIGHTLY_BUILD)
 - Release toggles
   - RELEASE_OR_BETA
+  - EARLY_BETA_OR_EARLIER
+  - MOZ_DEV_EDITION
+  - 
 - No if states
 
 
