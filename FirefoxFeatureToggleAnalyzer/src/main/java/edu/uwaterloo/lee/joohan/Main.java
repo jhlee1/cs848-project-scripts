@@ -1,28 +1,16 @@
 package edu.uwaterloo.lee.joohan;
 
-import edu.uwaterloo.lee.joohan.AllJsReader;
-
-import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] argv) {
-        Map<Integer, Integer> buildIdAndToggleCount = new HashMap<>();
+        Map<Integer, Integer> countOnEachRelease = ToggleCounter.getTotalOnEachRelease();
 
-        AllJsReader allJsReader = new AllJsReader();
-        StaticPrefListHReader staticPrefListHReader = new StaticPrefListHReader();
+        System.out.println(countOnEachRelease.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toList()));
 
-        for (int i = 57; i < 99; i++) {
-            int count = allJsReader.getNumOfToggles(i);
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += count);
-            buildIdAndToggleCount.putIfAbsent(i, count);
-        }
 
-        for (int i = 61; i < 70; i++) {
-            int result = staticPrefListHReader.getNumOfToggles(i);
-            buildIdAndToggleCount.putIfAbsent()
-            System.out.println("Count: " + result);
-        }
+
 
     }
 }
