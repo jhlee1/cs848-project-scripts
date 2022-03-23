@@ -15,3 +15,40 @@ Files to look at on each build
   - StaticPrefList.yaml
   - browser/app/profile/firefox.js
   - mobile/android/app/mobile.js
+
+
+
+
+
+Tags I used to differentiate toggles
+
+- Dev toggles
+  - !defined(RELEASE_OR_BETA)
+  - defined(NIGHTLY_BUILD)
+  - @IS_NOT_NIGHTLY_BUILD@
+  - @IS_NIGHTLY_BUILD@
+- Release toggles
+  - RELEASE_OR_BETA
+  - EARLY_BETA_OR_EARLIER
+  - MOZ_DEV_EDITION
+  - 
+- No if states
+
+
+
+
+When the feature supports somes platfrom and is deactivate for other platforms, it is dev
+```
+# Is support for WebVR APIs enabled?
+# Enabled by default in beta and release for Windows and OS X and for all
+# platforms in nightly and aurora.
+- name: dom.vr.enabled
+  type: RelaxedAtomicBool
+#if defined(XP_WIN) || defined(XP_DARWIN) || !defined(RELEASE_OR_BETA)
+  value: true
+#else
+  value: false
+#endif
+  mirror: always
+```
+
