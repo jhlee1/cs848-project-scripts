@@ -37,15 +37,63 @@ public class DevToggleCounter {
 
         String fileName = String.format("downloaded_files/build_%s/init/all.js", 70);
 
-        List<String> tmp = DevToggleCounter.getDevToggleFromJS(fileName);
+        List<String> tmp = DevToggleCounter.getDevToggleFromStaticPrefListH(65);
         System.out.println(tmp.stream().collect(Collectors.joining("\n")));
 
         return buildIdAndToggleCount;
     }
 
-    private static int getDevToggleFromStaticPrefListH(int buildId) {
+    private static List<String> getDevToggleFromStaticPrefListH(int buildId) {
+        String fileName = String.format("downloaded_files/build_%s/init/StaticPrefList.h", buildId);
 
+        List<String> lines = new ArrayList<>();
+        List<String> results = new ArrayList<>();
 
+        try {
+            Scanner scanner = new Scanner(new File(fileName));
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+
+                if (!line.replaceAll(" ", "").startsWith("//")) {
+                    lines.add(line);
+                }
+
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+
+            if (line.contains("defined(NIGHTLY_BUILD)") || line.contains("#ifdef NIGHTLY_BUILD")) {
+                i++;
+
+                if (lines.get(i).replace(" ", "").contains("#define")) {
+                    i++;
+
+                    while (!lines.get(i).replace(" ", "").contains("#undefPREF_VALUE")) {
+                        if (lines.get(i).replace(" ", "").matches("\".+\",")) {
+                            results.add(lines.get(i)
+                                    .replace(" ", "")
+                                    .replace("\"", "")
+                                    .replace(",", ""));
+                        }
+
+                        i++;
+                    }
+                } else if (lines.get(i).contains("PREF(")) { // VARCHAE PREF
+                    throw new AssertionError("Unexpected next line when I find #if defined" + lines.get(i));
+                    // I am leaving it as assert because I don't think that I need to implement this one.
+                } else {
+                    throw new AssertionError("Unexpected next line when I find #if defined" + lines.get(i));
+                }
+            }
+        }
+
+        return results;
     }
 
     private static List<String> getDevToggleFromJS(String fileName) {
