@@ -25,6 +25,8 @@ Tags I used to differentiate toggles
 - Dev toggles
   - !defined(RELEASE_OR_BETA)
   - defined(NIGHTLY_BUILD)
+  - @IS_NOT_NIGHTLY_BUILD@
+  - @IS_NIGHTLY_BUILD@
 - Release toggles
   - RELEASE_OR_BETA
   - EARLY_BETA_OR_EARLIER
