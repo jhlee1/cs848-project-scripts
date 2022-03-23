@@ -15,12 +15,14 @@ public class Main {
 //                        .collect(Collectors.toList())
 //        );
 
-        Set<String> nightlybuildStrings = new HashSet<>();
-        for (int i = 57; i < 99; i++) {
-            nightlybuildStrings.addAll(DevToggleCounter.getUniqueNightlyBuildLine(i));
-        }
+//        Set<String> nightlybuildStrings = new HashSet<>();
+//        for (int i = 70; i < 99; i++) {
+//            nightlybuildStrings.addAll(DevToggleCounter.getUniqueNightlyBuildLine(i));
+//        }
 
-        System.out.println(nightlybuildStrings);
+        DevToggleCounter.getTotalOnEachRelease();
+
+//        System.out.println(String.join("\n", nightlybuildStrings));
 
 
 

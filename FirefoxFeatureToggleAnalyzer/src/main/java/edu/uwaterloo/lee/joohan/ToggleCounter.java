@@ -57,7 +57,7 @@ public class ToggleCounter {
 
     private static int countStaticPrefListYaml(int buildId) {
         String fileName = String.format("downloaded_files/build_%s/init/StaticPrefList.yaml", buildId);
-        Pattern pattern = Pattern.compile("- name: .+");
+        Pattern pattern = Pattern.compile("name: .+");
 
         return getNumOfToggles(fileName, pattern);
     }
