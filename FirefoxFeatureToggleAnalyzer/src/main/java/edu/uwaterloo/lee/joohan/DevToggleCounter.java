@@ -8,42 +8,57 @@ import java.util.stream.Collectors;
 public class DevToggleCounter {
     public static Map<Integer, Integer> getTotalOnEachRelease() {
         Map<Integer, Integer> buildIdAndToggleCount = new HashMap<>();
-//
-//        for (int i = 57; i < 99; i++) {
-//            final int countFromAll = countAllJs(i);
-//            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromAll);
-//            buildIdAndToggleCount.putIfAbsent(i, countFromAll);
-//
-//            final int countFromFirefox = countFirefoxJs(i);
-//            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromFirefox);
-//            buildIdAndToggleCount.putIfAbsent(i, countFromFirefox);
-//
-//            final int countFromMobile = countMobileJs(i);
-//            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromMobile);
-//            buildIdAndToggleCount.putIfAbsent(i, countFromMobile);
-//        }
-//
-//        for (int i = 61; i < 70; i++) {
-//            int count = countStaticPrefListH(i);
-//            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += count);
-//            buildIdAndToggleCount.putIfAbsent(i, count);
-//        }
-//
-//        for (int i = 71; i < 72; i++) {
-//            List<String> devToggles = getDevToggleFromPrefListYaml(i);
-//            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += devToggles.size());
-//            buildIdAndToggleCount.putIfAbsent(i, devToggles.size());
-//        }
 
-        String fileName = String.format("downloaded_files/build_%s/init/all.js", 70);
+        for (int i = 57; i < 99; i++) {
+            final int countFromAll = getFromAllJS(i).size();
+            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromAll);
+            buildIdAndToggleCount.putIfAbsent(i, countFromAll);
 
-        List<String> tmp = DevToggleCounter.getDevToggleFromStaticPrefListH(65);
-        System.out.println(tmp.stream().collect(Collectors.joining("\n")));
+            final int countFromFirefox = getFromBrowserJS(i).size();
+            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromFirefox);
+            buildIdAndToggleCount.putIfAbsent(i, countFromFirefox);
+
+            final int countFromMobile = getFromMobileJS(i).size();
+            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromMobile);
+            buildIdAndToggleCount.putIfAbsent(i, countFromMobile);
+        }
+
+        for (int i = 61; i < 70; i++) {
+            int count = getFromStaticPrefListH(i).size();
+            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += count);
+            buildIdAndToggleCount.putIfAbsent(i, count);
+        }
+
+        for (int i = 70; i < 99; i++) {
+            int count = getFromPrefListYaml(i).size();
+            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += count);
+            buildIdAndToggleCount.putIfAbsent(i, count);
+        }
 
         return buildIdAndToggleCount;
     }
 
-    private static List<String> getDevToggleFromStaticPrefListH(int buildId) {
+
+
+    public static List<String> getFromAllJS(int buildId) {
+        String fileName = String.format("downloaded_files/build_%s/init/all.js", buildId);
+
+        return getFromJS(fileName);
+    }
+
+    public static List<String> getFromBrowserJS(int buildId) {
+        String fileName = String.format("downloaded_files/build_%s/profile/firefox.js", buildId);
+
+        return getFromJS(fileName);
+    }
+
+    public static List<String> getFromMobileJS(int buildId) {
+        String fileName = String.format("downloaded_files/build_%s/app/mobile.js", buildId);
+
+        return getFromJS(fileName);
+    }
+
+    public static List<String> getFromStaticPrefListH(int buildId) {
         String fileName = String.format("downloaded_files/build_%s/init/StaticPrefList.h", buildId);
 
         List<String> lines = new ArrayList<>();
@@ -96,7 +111,7 @@ public class DevToggleCounter {
         return results;
     }
 
-    private static List<String> getDevToggleFromJS(String fileName) {
+    private static List<String> getFromJS(String fileName) {
         List<String> lines = new ArrayList<>();
         List<String> results = new ArrayList<>();
 
@@ -123,10 +138,10 @@ public class DevToggleCounter {
                 i++;
                 int numOfIfs = 1;
 
-                if (lines.get(i).contains("pref(")) {
+                if (lines.get(i).contains("pref(") || lines.get(i).replace(" ", "").contains("#if")) {
 
                     while (numOfIfs > 0) {
-                        if (lines.get(i).contains("#endif") || lines.get(i).contains("#else")) {
+                        if (lines.get(i).contains("#endif") || lines.get(i).contains("#else") || lines.get(i).contains("#elif")) {
                             numOfIfs--;
                         }
 
@@ -153,10 +168,8 @@ public class DevToggleCounter {
         return results;
     }
 
-
-
     // Tags considered Dev toggles: "defined(NIGHTLY_BUILD)", "#ifdef NIGHTLY_BUILD", "@IS_NIGHTLY_BUILD@", "@IS_NOT_NIGHTLY_BUILD@"
-    private static List<String> getDevToggleFromPrefListYaml(int buildId) {
+    public static List<String> getFromPrefListYaml(int buildId) {
         String fileName = String.format("downloaded_files/build_%s/init/StaticPrefList.yaml", buildId);
 
         List<String> lines = new ArrayList<>();
@@ -188,7 +201,7 @@ public class DevToggleCounter {
 
             if (line.contains("@IS_NIGHTLY_BUILD@") || line.contains("@IS_NOT_NIGHTLY_BUILD@")) {
                 for (int j = i; j >= 0; j--) {
-                    if (lines.get(j).contains("- name:")) {
+                    if (lines.get(j).replace(" ", "").contains("-name:")) {
                         String toggleName = lines.get(j).replace("- name: ", "");
                         results.add(toggleName);
                         break;
@@ -199,15 +212,18 @@ public class DevToggleCounter {
             if (line.contains("defined(NIGHTLY_BUILD)") || line.contains("#ifdef NIGHTLY_BUILD")) {
                 i++;
 
-                while (lines.get(i).startsWith("  #")) {
+                String tmp = lines.get(i).replace(" ", "");
+
+                while (tmp.startsWith("#") && !(tmp.contains("#if") || tmp.contains("#endif") || tmp.contains("#else") || lines.get(i).contains("#elif"))) {
                     i++;
+                    tmp = lines.get(i).replace(" ", "");
                 }
 
-                if (lines.get(i).contains("name:")) {
+                if (lines.get(i).contains("name:") || lines.get(i).replace(" ", "").contains("#if")) {
                     int numOfIfs = 1;
 
                     while (numOfIfs > 0) {
-                        if (lines.get(i).contains("#endif") || lines.get(i).contains("#else")) {
+                        if (lines.get(i).contains("#endif") || lines.get(i).contains("#else") || lines.get(i).contains("#elif")) {
                             numOfIfs--;
                         }
 
@@ -215,22 +231,24 @@ public class DevToggleCounter {
                             numOfIfs++;
                         }
 
-                        if (lines.get(i).contains("- name:")) {
-                            String toggleName = lines.get(i).replace("- name: ", "");
+                        if (lines.get(i).replace(" ", "").contains("-name:")) {
+                            String toggleName = lines.get(i).replace(" ", "").replace("-name: ", "");
                             results.add(toggleName);
                         }
                         i++;
                     }
                 } else if (lines.get(i).contains("value:")) {
                     for (int j = i; j >= 0; j--) {
-                        if (lines.get(j).contains("- value:")) {
-                            String toggleName = lines.get(j).replace("- name: ", "");
+                        if (lines.get(j).replace(" ", "").contains("-value:")) {
+                            String toggleName = lines.get(j).replace(" ", "").replace("-name:", "");
                             results.add(toggleName);
                             break;
                         }
                     }
+                } else if (lines.get(i).length() <= 0) {
+                    //Do nothing
                 } else {
-                    throw new AssertionError("Unexpected next line when I find #if defined" + lines.get(i));
+                    throw new AssertionError("Unexpected next line: " + lines.get(i).length());
                 }
             }
         }
