@@ -55,6 +55,7 @@ public class Main {
         System.out.println("Dev lifespan:" + devLifespan + " Release life span: " + releaseLifespan);
 
         Map<Integer, Long> devToggleNumOnEachBuild = new HashMap<>();
+        Map<Integer, Long> releaseToggleNumOnEachBuild = new HashMap<>();
 
         for (int i = 57; i < 99; i++) {
             final int buildId = i;
@@ -62,11 +63,16 @@ public class Main {
                     .stream()
                     .filter(toggleInfo -> ToggleStatus.DEV == toggleInfo.getStatus(buildId))
                     .count();
-
+            long releaseCount = toggles.values()
+                    .stream()
+                    .filter(toggleInfo -> ToggleStatus.RELEASE == toggleInfo.getStatus(buildId))
+                    .count();
+            releaseToggleNumOnEachBuild.put(buildId, releaseCount);
             devToggleNumOnEachBuild.put(buildId, devCount);
         }
 
         System.out.println(devToggleNumOnEachBuild);
+        System.out.println(releaseToggleNumOnEachBuild);
 
 
     }
