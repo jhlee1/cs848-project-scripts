@@ -2,82 +2,109 @@ package edu.uwaterloo.lee.joohan;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class ToggleCounter {
     public static Map<Integer, Integer> getTotalOnEachRelease() {
         Map<Integer, Integer> buildIdAndToggleCount = new HashMap<>();
 
-        for (int i = 57; i < 99; i++) {
-            final int countFromAll = countAllJs(i);
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromAll);
-            buildIdAndToggleCount.putIfAbsent(i, countFromAll);
+        for (int i = 57; i < 61; i++) {
+            Set<String> prefs = new HashSet<>();
+            prefs.addAll(getFromAllJs(i));
+            prefs.addAll(getFromFirefoxJs(i));
+            prefs.addAll(getFromMobileJs(i));
 
-            final int countFromFirefox = countFirefoxJs(i);
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromFirefox);
-            buildIdAndToggleCount.putIfAbsent(i, countFromFirefox);
-
-            final int countFromMobile = countMobileJs(i);
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromMobile);
-            buildIdAndToggleCount.putIfAbsent(i, countFromMobile);
+            buildIdAndToggleCount.put(i, prefs.size());
         }
 
         for (int i = 61; i < 70; i++) {
-            int count = countStaticPrefListH(i);
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += count);
-            buildIdAndToggleCount.putIfAbsent(i, count);
+            Set<String> prefs = new HashSet<>();
+
+            prefs.addAll(getFromAllJs(i));
+            prefs.addAll(getFromFirefoxJs(i));
+            prefs.addAll(getFromMobileJs(i));
+            prefs.addAll(countStaticPrefListH(i));
+
+            buildIdAndToggleCount.put(i, prefs.size());
         }
 
         for (int i = 70; i < 99; i++) {
-            int count = countStaticPrefListYaml(i);
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += count);
-            buildIdAndToggleCount.putIfAbsent(i, count);
+            Set<String> prefs = new HashSet<>();
+
+            prefs.addAll(getFromAllJs(i));
+            prefs.addAll(getFromFirefoxJs(i));
+            prefs.addAll(getFromMobileJs(i));
+            prefs.addAll(countStaticPrefListYaml(i));
+
+            buildIdAndToggleCount.put(i, prefs.size());
         }
 
         return buildIdAndToggleCount;
     }
 
-    private static int countAllJs(int buildId) {
+    private static List<String> getFromAllJs(int buildId) {
         String fileName = String.format("downloaded_files/build_%s/init/all.js", buildId);
         Pattern pattern = Pattern.compile("pref\\(\".+\", .+\\);");
 
-        return getNumOfToggles(fileName, pattern);
+        return getLines(fileName, pattern).stream()
+                .filter(s -> !s.replace(" ", "").startsWith("//"))
+                .map(s -> s.replace(" ", "").replace("pref(\"", "").replaceAll("\",.+", ""))
+                .collect(Collectors.toList());
     }
 
-    private static int countStaticPrefListH(int buildId) {
+    private static List<String> countStaticPrefListH(int buildId) {
         String fileName = String.format("downloaded_files/build_%s/init/StaticPrefList.h", buildId);
-        Pattern pattern = Pattern.compile("PREF\\(");
+        Pattern pattern = Pattern.compile("\".+\"");
 
-        return getNumOfToggles(fileName, pattern) - 2; // Take off the ones in the commment
+        return getLines(fileName, pattern)
+                .stream()
+                .filter(s -> !s.replace(" ", "").startsWith("//"))
+                .map(s -> s.replace(" ", "")
+                        .replace("PREF(\"", "")
+                        .replace("\",.+", "")
+                        .replace("\"", "")
+                        .replace(",", "")
+                )
+                .collect(Collectors.toList());
     }
 
-    private static int countStaticPrefListYaml(int buildId) {
+    private static List<String> countStaticPrefListYaml(int buildId) {
         String fileName = String.format("downloaded_files/build_%s/init/StaticPrefList.yaml", buildId);
         Pattern pattern = Pattern.compile("name: .+");
 
-        return getNumOfToggles(fileName, pattern);
+        return getLines(fileName, pattern)
+                .stream()
+                .map(s -> s.replace(" ", "")
+                        .replace("-name:", "")
+                )
+                .collect(Collectors.toList());
     }
 
-    private static int countFirefoxJs(int buildId) {
+    private static List<String> getFromFirefoxJs(int buildId) {
         String fileName = String.format("downloaded_files/build_%s/profile/firefox.js", buildId);
         Pattern pattern = Pattern.compile("pref\\(\".+\", .+\\);");
 
-        return getNumOfToggles(fileName, pattern);
+        return getLines(fileName, pattern).stream()
+                .filter(s -> !s.replace(" ", "").startsWith("//"))
+                .map(s -> s.replace(" ", "").replace("pref(\"", "").replaceAll("\",.+", ""))
+                .collect(Collectors.toList());
     }
 
-    private static int countMobileJs(int buildId) {
+    private static List<String> getFromMobileJs(int buildId) {
         String fileName = String.format("downloaded_files/build_%s/app/mobile.js", buildId);
         Pattern pattern = Pattern.compile("pref\\(\".+\", .+\\);");
 
-        return getNumOfToggles(fileName, pattern);
+        return getLines(fileName, pattern).stream()
+                .filter(s -> !s.replace(" ", "").startsWith("//"))
+                .map(s -> s.replace(" ", "").replace("pref(\"", "").replaceAll("\",.+", ""))
+                .collect(Collectors.toList());
     }
 
-    private static int getNumOfToggles(String fileName, Pattern pattern) {
-        int count = 0;
+    private static List<String> getLines(String fileName, Pattern pattern) {
+        List<String> toggles = new ArrayList<>();
 
         try {
             Scanner scanner = new Scanner(new File(fileName));
@@ -86,7 +113,7 @@ public class ToggleCounter {
                 Matcher matcher = pattern.matcher(line);
 
                 if (matcher.find()) {
-                    count++;
+                    toggles.add(line);
                 }
             }
             scanner.close();
@@ -95,7 +122,7 @@ public class ToggleCounter {
             e.printStackTrace();
         }
 
-        return count;
+        return toggles;
     }
 
 }
