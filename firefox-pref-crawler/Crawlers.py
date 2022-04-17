@@ -57,3 +57,21 @@ class FirefoxCrawler:
         browser.click_element_by_xpath("//a[contains(text(), 'zip')]")
 
         time.sleep(15)
+
+    def download_devtool_pref(build_version):
+        build_name = "FIREFOX_RELEASE_%s_BASE" % build_version
+        print("Downloading: %s" % build_name)
+
+        browser = Browser()
+        browser.get_page("https://hg.mozilla.org/mozilla-unified/tags")
+
+        element1 = browser.get_element_by_xpath("//b[contains(text(), '%s')]" % build_name)
+        element2 = element1.find_element_by_xpath("../../../td[@class='link']/a[contains(text(), 'files')]")
+        browser.click_element(element2)
+
+        browser.click_element_by_xpath("//a[contains(text(), 'devtools')]")
+        browser.click_element_by_xpath("//a[contains(text(), 'shared')]")
+        browser.click_element_by_xpath("//a[contains(text(), 'preferences')]")
+        browser.click_element_by_xpath("//a[contains(text(), 'zip')]")
+
+        time.sleep(15)

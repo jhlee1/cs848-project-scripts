@@ -5,10 +5,15 @@ from Crawlers import FirefoxCrawler
 
 # Get data and Read files
 
-for i in range(57, 61):
-    FirefoxCrawler.download_browser_pref(i)
-    os.system("mkdir -p downloaded_browser/build_%s" % i)
-    os.system("mv *.zip downloaded_browser/build_%d" % i)
+# for i in range(57, 61):
+
+# FirefoxCrawler.download_devtool_pref(61)
+for i in range(69, 70):
+    FirefoxCrawler.download_devtool_pref(i)
+    os.system("mkdir -p downloaded_devtools/build_%s" % i)
+    os.system("mv *.zip downloaded_devtools/build_%d" % i)
+
+
 
 # for i in range(58, 99):
 
@@ -21,3 +26,6 @@ for i in range(57, 61):
 # FirefoxCrawler.download_mobile_pref(69)
 # os.system("mkdir -p downloaded_mobile/build_%s" % 69)
 # os.system("mv *.zip downloaded_mobile/build_%d" % 69)
+# FirefoxCrawler.download_browser_pref(i)
+# os.system("mkdir -p downloaded_browser/build_%s" % i)
+# os.system("mv *.zip downloaded_browser/build_%d" % i)

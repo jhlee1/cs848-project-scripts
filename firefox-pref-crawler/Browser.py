@@ -7,7 +7,7 @@ class Browser:
         option = webdriver.ChromeOptions()
         option.add_argument('—incognito')
         option.add_experimental_option("prefs", {
-            "download.default_directory": r"/Users/joohan/PycharmProjects/firefox-pref-crawler",
+            "download.default_directory": r"/Users/joohan/IdeaProjects/cs848-project-scripts/firefox-pref-crawler",
             "download.prompt_for_download": False,
             "download.directory_upgrade": True,
             "safebrowsing.enabled": True
