@@ -16,23 +16,6 @@ public class Main {
                         .collect(Collectors.toList())
         );
 
-        //THESE are inaccurate
-//        Map<Integer, Integer> countDevOnEachRelease = DevToggleCounter.getTotalOnEachRelease();
-//        System.out.println(
-//                countDevOnEachRelease.entrySet()
-//                        .stream()
-//                        .sorted(Map.Entry.comparingByKey())
-//                        .collect(Collectors.toList())
-//        );
-
-//        Map<Integer, Integer> countReleaseOnEachRelease = ReleaseToggleCounter.getTotalOnEachRelease();
-//        System.out.println(
-//                countReleaseOnEachRelease.entrySet()
-//                        .stream()
-//                        .sorted(Map.Entry.comparingByKey())
-//                        .collect(Collectors.toList())
-//        );
-
 
         Map<String, ToggleInfo> toggles = ToggleLifeCycleTracker.getLifeCycleDevToggles();
 
@@ -71,9 +54,11 @@ public class Main {
             devToggleNumOnEachBuild.put(buildId, devCount);
         }
 
-        System.out.println(devToggleNumOnEachBuild);
-        System.out.println(releaseToggleNumOnEachBuild);
+        System.out.println(devToggleNumOnEachBuild.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toList()));
+        System.out.println(releaseToggleNumOnEachBuild.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toList()));
 
+
+        System.out.println(ToggleCounter.getLifespan());
 
     }
 }
