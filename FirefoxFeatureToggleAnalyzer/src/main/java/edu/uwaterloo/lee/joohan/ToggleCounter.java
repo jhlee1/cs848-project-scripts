@@ -1,5 +1,6 @@
 package edu.uwaterloo.lee.joohan;
 
+import com.google.common.math.Quantiles;
 import com.google.common.math.Stats;
 
 import java.io.File;
@@ -137,11 +138,11 @@ public class ToggleCounter {
             });
         }
 
-        for (int i = 0; i < 43; i++) {
+        for (int i = 0; i < 42; i++) {
             final int numOfRelease = i;
             List<Double> probabilities = new ArrayList<>();
 
-            for (int j = 57; j < 99; j++) {
+            for (int j = 57; j < 99 - i; j++) {
                 final int currentRelease = j;
 
                 double totalNumOfToggleOnCurrentRelease = toggleAndLifespan.entrySet().stream()
@@ -150,24 +151,22 @@ public class ToggleCounter {
 
                 double numOfToggles = toggleAndLifespan.entrySet().stream()
                         .filter(e -> e.getValue().getStartingRelease() == currentRelease)
-                        .filter(e -> e.getValue().getLifespan() == numOfRelease)
+                        .filter(e -> e.getValue().getLifespan() >= numOfRelease)
                         .map(Map.Entry::getKey)
                         .count();
 
                 probabilities.add(numOfToggles / totalNumOfToggleOnCurrentRelease);
             }
 
-            Stats stats = Stats.of(probabilities);
+            double med = Quantiles.median().compute(probabilities);
+            double five = Quantiles.percentiles().index(5).compute(probabilities);
+            double ninetyFive = Quantiles.percentiles().index(95).compute(probabilities);
 
-            double mean = stats.mean();
-            double stdDev = stats.populationStandardDeviation();
-            double fifthPercentile = mean - 2 * stdDev;
-            double ninetyFifthPercentile = mean + 2 * stdDev;
 
             lifespanAndProbabilities.put(numOfRelease, new ArrayList<>());
-            lifespanAndProbabilities.get(numOfRelease).add(mean);
-            lifespanAndProbabilities.get(numOfRelease).add(fifthPercentile);
-            lifespanAndProbabilities.get(numOfRelease).add(ninetyFifthPercentile);
+            lifespanAndProbabilities.get(numOfRelease).add(med);
+            lifespanAndProbabilities.get(numOfRelease).add(five);
+            lifespanAndProbabilities.get(numOfRelease).add(ninetyFive);
         }
 
         return lifespanAndProbabilities;
@@ -225,22 +224,32 @@ public class ToggleCounter {
     private static List<String> getStaticPrefListH(int buildId) {
         String fileName = String.format("downloaded_files/build_%s/init/StaticPrefList.h", buildId);
         Pattern pattern = Pattern.compile("\".+\"");
+        List<String> prefs = new ArrayList<>();
 
-        return getLines(fileName, pattern)
+        List<String> lines = getLines(fileName, pattern)
                 .stream()
                 .filter(s -> !s.replace(" ", "").startsWith("//"))
-                .map(s -> {
-                            s = s.replace(" ", "");
-                            if (s.startsWith("PREF")) {
-                                return s.replace("PREF(\"", "")
-                                        .replace("\",.+", "")
-                                        .replace("\"", "")
-                                        .replace(",", "")
-                            }
-                            //TODO: NEED to fix to support VARCACHE_PREF
-                        }
-                )
-                .collect(Collectors.toList());
+                .map(s -> s.replace(" ", ""))
+                .toList();
+
+        for (String line : lines) {
+            if (line.startsWith("PREF")) {
+                String pref = line
+                        .replace("PREF(\"", "")
+                        .replaceAll("\",.+", "")
+                        .replace("\"", "")
+                        .replace(",", "");
+                prefs.add(pref);
+            } else {
+                String pref = line
+                        .replace("\"", "")
+                        .replace(",", "");
+
+                prefs.add(pref);
+            }
+        }
+
+        return prefs;
     }
 
     private static List<String> getStaticPrefListYaml(int buildId) {

@@ -6,36 +6,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ReleaseToggleCounter {
-    public static Map<Integer, Integer> getTotalOnEachRelease() {
-        Map<Integer, Integer> buildIdAndToggleCount = new HashMap<>();
+    public static List<String> getFromDevtoolsJS(int buildId) {
+        String fileName = String.format("downloaded_files/build_%s/devtools/shared/preferences/devtools-shared.js", buildId);
 
-        for (int i = 57; i < 99; i++) {
-            final int countFromAll = getFromAllJS(i).size();
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromAll);
-            buildIdAndToggleCount.putIfAbsent(i, countFromAll);
-
-            final int countFromFirefox = getFromBrowserJS(i).size();
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromFirefox);
-            buildIdAndToggleCount.putIfAbsent(i, countFromFirefox);
-
-            final int countFromMobile = getFromMobileJS(i).size();
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += countFromMobile);
-            buildIdAndToggleCount.putIfAbsent(i, countFromMobile);
-        }
-
-        for (int i = 61; i < 70; i++) {
-            int count = getFromStaticPrefListH(i).size();
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += count);
-            buildIdAndToggleCount.putIfAbsent(i, count);
-        }
-
-        for (int i = 70; i < 99; i++) {
-            int count = getFromYaml(i).size();
-            buildIdAndToggleCount.computeIfPresent(i, (key, val) -> val += count);
-            buildIdAndToggleCount.putIfAbsent(i, count);
-        }
-
-        return buildIdAndToggleCount;
+        return getFromJS(fileName);
     }
 
     public static List<String> getFromAllJS(int buildId) {

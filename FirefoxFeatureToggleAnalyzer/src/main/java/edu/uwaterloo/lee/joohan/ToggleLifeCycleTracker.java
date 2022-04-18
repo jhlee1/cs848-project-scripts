@@ -16,10 +16,10 @@ public class ToggleLifeCycleTracker {
                         toggles.get(toggle).addBuildInfo(currentVersion, ToggleStatus.DEV);
                     });
             ReleaseToggleCounter.getFromAllJS(i)
-                            .forEach(toggle -> {
-                                toggles.putIfAbsent(toggle, new ToggleInfo(toggle));
-                                toggles.get(toggle).addBuildInfo(currentVersion, ToggleStatus.RELEASE);
-                            });
+                    .forEach(toggle -> {
+                        toggles.putIfAbsent(toggle, new ToggleInfo(toggle));
+                        toggles.get(toggle).addBuildInfo(currentVersion, ToggleStatus.RELEASE);
+                    });
 
             DevToggleCounter.getFromBrowserJS(i)
                     .forEach(toggle -> {
@@ -51,6 +51,18 @@ public class ToggleLifeCycleTracker {
                         toggles.get(toggle).addBuildInfo(currentVersion, ToggleStatus.DEV);
                     });
             ReleaseToggleCounter.getFromStaticPrefListH(i)
+                    .forEach(toggle -> {
+                        toggles.putIfAbsent(toggle, new ToggleInfo(toggle));
+                        toggles.get(toggle).addBuildInfo(currentVersion, ToggleStatus.RELEASE);
+                    });
+
+            DevToggleCounter.getFromDevtoolsJS(i)
+                    .forEach(toggle -> {
+                        toggles.putIfAbsent(toggle, new ToggleInfo(toggle));
+                        toggles.get(toggle).addBuildInfo(currentVersion, ToggleStatus.DEV);
+                    });
+
+            ReleaseToggleCounter.getFromDevtoolsJS(i)
                     .forEach(toggle -> {
                         toggles.putIfAbsent(toggle, new ToggleInfo(toggle));
                         toggles.get(toggle).addBuildInfo(currentVersion, ToggleStatus.RELEASE);
